@@ -23,8 +23,10 @@ Run these in different console
 ./skynet examples/config	# Launch first skynet node  (Gate server) and a skynet-master (see config for standalone option)
 lua examples/client.lua 	# Launch a client, and try to input some words.
 ```
-xcode First make before running.
 
+```
+xcode First make before running.
+```
 
 ## About Lua
 
