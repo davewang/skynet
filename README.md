@@ -25,7 +25,7 @@ lua examples/client.lua 	# Launch a client, and try to input some words.
 ```
 
 ```
-xcode First make before running.
+xcode first make before running.
 ```
 
 ## About Lua
