@@ -13,7 +13,7 @@
 #define HASH_SIZE 4096
 #define DEFAULT_QUEUE_SIZE 1024
 
-struct msg {
+struct sn_msg {
 	uint8_t * buffer;
 	size_t size;
 };
@@ -22,7 +22,7 @@ struct msg_queue {
 	int size;
 	int head;
 	int tail;
-	struct msg * data;
+	struct sn_msg * data;
 };
 
 struct keyvalue {
@@ -66,7 +66,7 @@ _push_queue(struct msg_queue * queue, const void * buffer, size_t sz, struct rem
 	// If there is only 1 free slot which is reserved to distinguish full/empty
 	// of circular buffer, expand it.
 	if (((queue->tail + 1) % queue->size) == queue->head) {
-		struct msg * new_buffer = skynet_malloc(queue->size * 2 * sizeof(struct msg));
+		struct sn_msg * new_buffer = skynet_malloc(queue->size * 2 * sizeof(struct sn_msg));
 		int i;
 		for (i=0;i<queue->size-1;i++) {
 			new_buffer[i] = queue->data[(i+queue->head) % queue->size];
@@ -77,7 +77,7 @@ _push_queue(struct msg_queue * queue, const void * buffer, size_t sz, struct rem
 		queue->tail = queue->size - 1;
 		queue->size *= 2;
 	}
-	struct msg * slot = &queue->data[queue->tail];
+	struct sn_msg * slot = &queue->data[queue->tail];
 	queue->tail = (queue->tail + 1) % queue->size;
 
 	slot->buffer = skynet_malloc(sz + sizeof(*header));
@@ -86,7 +86,7 @@ _push_queue(struct msg_queue * queue, const void * buffer, size_t sz, struct rem
 	slot->size = sz + sizeof(*header);
 }
 
-static struct msg *
+static struct sn_msg *
 _pop_queue(struct msg_queue * queue) {
 	if (queue->head == queue->tail) {
 		return NULL;
@@ -102,7 +102,7 @@ _new_queue() {
 	queue->size = DEFAULT_QUEUE_SIZE;
 	queue->head = 0;
 	queue->tail = 0;
-	queue->data = skynet_malloc(DEFAULT_QUEUE_SIZE * sizeof(struct msg));
+	queue->data = skynet_malloc(DEFAULT_QUEUE_SIZE * sizeof(struct sn_msg));
 
 	return queue;
 }
@@ -111,7 +111,7 @@ static void
 _release_queue(struct msg_queue *queue) {
 	if (queue == NULL)
 		return;
-	struct msg * m = _pop_queue(queue);
+	struct sn_msg * m = _pop_queue(queue);
 	while (m) {
 		skynet_free(m->buffer);
 		m = _pop_queue(queue);
@@ -339,7 +339,7 @@ _dispatch_queue(struct harbor *h, struct msg_queue * queue, uint32_t handle,  co
 		skynet_error(context, "Drop message to %s (in harbor %d)",tmp,harbor_id);
 		return;
 	}
-	struct msg * m = _pop_queue(queue);
+	struct sn_msg * m = _pop_queue(queue);
 	while (m) {
 		struct remote_message_header cookie;
 		uint8_t *ptr = m->buffer + m->size - sizeof(cookie);
